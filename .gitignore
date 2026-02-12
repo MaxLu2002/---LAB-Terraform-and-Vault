@@ -1,0 +1,27 @@
+# --- Terraform ---
+*.tfstate
+*.tfstate.*
+.terraform/
+*.stackdump
+.terraform.lock.hcl
+
+# --- GCP & Keys (關鍵修正) ---
+# 包含所有可能的金鑰目錄名
+key/
+
+credentials/
+*.json
+!variables.tf.json # 如果你有用 json 寫變數才排除
+_COMMAND.sh
+vault_output.sh
+
+# --- Vault & Scripts ---
+.vault-token
+config_dev.ps1
+*.env
+
+# --- OS & IDE ---
+.DS_Store
+.idea/
+.vscode/
+_remindme.md
