@@ -12,7 +12,7 @@
 ---
 
 ## 🏗️ 架構說明[
-[image](./images/arch.png)
+![image](./images/arch.png)
 
 ### 核心概念
 
