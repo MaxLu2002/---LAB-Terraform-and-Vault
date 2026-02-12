@@ -10,7 +10,7 @@
 key/
 
 credentials/
-*.json
+
 !variables.tf.json # 如果你有用 json 寫變數才排除
 _COMMAND.sh
 vault_output.sh
