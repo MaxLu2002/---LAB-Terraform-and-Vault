@@ -31,7 +31,7 @@
 ---
 
 ## 🚀 部署步驟
-## 環境需求
+## 📒 環境需求
 - Windows OS
 - Vault、Terraform、Google Cloud SDK (gcloud)
 - 已建立的 GCP 專案
@@ -90,10 +90,12 @@ gcloud iam service-accounts keys create $ROOT_KEY_NAME.json \
 # 下載到本地
 cloudshell download $ROOT_KEY_NAME.json
 ```
+![image](https://hackmd.io/_uploads/B1C7RQdUbl.png)
 
 #### 步驟 2: 儲存金鑰檔
 
 * 將下載的 `root_sa.json` 放置到專案目錄的 `./keys/root_sa.json` 路徑下。
+![image](https://hackmd.io/_uploads/B1orCQuIZx.png)
 
 #### 步驟 3: 啟用必要的 GCP API
 
@@ -108,6 +110,7 @@ gcloud services enable \
   iam.googleapis.com \
   cloudresourcemanager.googleapis.com
 ```
+![image](https://hackmd.io/_uploads/HyawRX_8-g.png)
 
 ---
 
@@ -221,11 +224,14 @@ vault write gcp/roleset/$env:TF_VAR_sa_name `
   token_scopes="https://www.googleapis.com/auth/cloud-platform" `
   bindings="resource \`"//cloudresourcemanager.googleapis.com/projects/$env:PROJECT_ID\`" { roles = [\`"roles/editor\`"] }"
 ```
+![image](https://hackmd.io/_uploads/S1RGJV_8-e.png)
 
 **參數說明**:
 - `token_scopes`: 定義 Token 的權限範圍(此處為完整雲端平台權限)
 - `bindings`: 指定臨時帳號在專案中的權限
 
+#### 步驟 5:⚠️ 刪除`./keys/root_sa.json`
+* 這個步驟能讓接下來的操作更有感vault的能力
 **刪除 Roleset**(若需要):
 ```powershell
 vault delete gcp/roleset/$env:TF_VAR_sa_name
@@ -278,6 +284,7 @@ cd ./gcp_infra/
 #### 💫步驟 2: 檢視設定檔 (重要)
 
 * 確認 `main.tf` 和 `terraform.tfvars` 的內容符合您的需求。
+    * 要先手動更正 `terraform.tfvars` 裡面的 `project_id` 
 * 確認 `_provider.tf` 要用哪一個
   * 1.如果 `secret_type是`是`access_token`就用`_provider_access_token.tf`
   * 2.如果 `secret_type是`是`service_account_key`就用`_provider_service_account_key.tf`
@@ -299,19 +306,21 @@ terraform plan
 terraform apply -auto-approve
 ```
 會出現類似以下的 `output`：
+![image](https://hackmd.io/_uploads/Bk8VLysDZe.png)
+
 ```sh
 infra = {
     gcloud_login_command = <<-EOT
-    # 先登入Gcloud要用的帳號
-      gcloud auth login # 要輸入帳號密碼登入IAM帳號 
-      gcloud config set project ${local.project_id}
-
-    # 啟用與關閉OS Login
-      gcloud compute project-info add-metadata --metadata enable-oslogin=TRUE #FALSE
-    ..................
+    
+      gcloud auth login # 要輸入帳號密碼登入IAM帳號
+      gcloud config set project ${local.project_id} 
+      gcloud compute ssh ${module.gce.output.name} --zone=${module.gce.output.zone} --quiet   
+  
+    EOT
 }
 
 ```
+接下來輪流輸入三行指令就可以登入了，第一個指令記得要登入所用的帳號
 
 #### 步驟 5: 清理資源
 
@@ -352,38 +361,12 @@ vault write gcp/roleset/my-sa project=my-project ...
 4. Vault 將 Token 回傳給使用者
 5. 使用者使用 Token 操作 GCP 資源
 
-**重點**:
+### **重點**:
 - 使用者**永遠拿不到** Service Account 的永久金鑰
 - 使用者**只能取得**有時效性的 Access Token
 - Root SA 金鑰**完全鎖在** Vault 內部
 
----
 
-## ❓ 常見問題
-
-### Q1: 為什麼 Token 會過期?
-
-**答**: 這是刻意設計的安全機制。短期憑證即使被竊取,也會在短時間內自動失效,大幅降低安全風險。
-
-### Q2: Token 過期後要重新執行所有步驟嗎?
-
-**答**: 不需要。只需重新執行 `vault read gcp/token/$env:TF_VAR_sa_name` 即可取得新的 Token。
-
-### Q3: Root SA 的金鑰會外洩嗎?
-
-**答**: 不會。Root SA 金鑰儲存在 Vault 的加密資料庫中,任何人(包括管理員)都無法直接取得。
-
-### Q4: 如何延長 Token 有效期?
-
-**答**: 修改 `gcp/config` 的 `ttl` 和 `max_ttl` 參數,但不建議超過 12 小時(GCP 限制)。
-
-### Q5: Roleset 與 Static Account 有何差異?
-
-**答**:
-- **Roleset**: Vault 動態建立/刪除 SA,適合臨時任務
-- **Static Account**: Vault 託管現有 SA 並定期輪替金鑰,適合長期應用
-
----
 
 ## 📝 最佳實踐建議
 
