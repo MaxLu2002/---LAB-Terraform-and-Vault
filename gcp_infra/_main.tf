@@ -43,7 +43,7 @@ module "gce-webserver-2" {
   gce_machine_type = var.gce_machine_type
   gce_subnet = module.vpc.output.public_subnet_self_link
   gce_region = var.vpc_region
-  gce_zone = "a"
+  gce_zone = "b"
   
   os_login = "false" 
 }

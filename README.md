@@ -91,12 +91,10 @@ gcloud iam service-accounts keys create $ROOT_KEY_NAME.json \
 # 下載到本地
 cloudshell download $ROOT_KEY_NAME.json
 ```
-![image](https://hackmd.io/_uploads/B1C7RQdUbl.png)
 
 #### 步驟 2: 儲存金鑰檔
 
 * 將下載的 `root_sa.json` 放置到專案目錄的 `./keys/root_sa.json` 路徑下。
-![image](https://hackmd.io/_uploads/B1orCQuIZx.png)
 
 #### 步驟 3: 啟用必要的 GCP API
 
@@ -111,7 +109,6 @@ gcloud services enable \
   iam.googleapis.com \
   cloudresourcemanager.googleapis.com
 ```
-![image](https://hackmd.io/_uploads/HyawRX_8-g.png)
 
 ---
 
@@ -225,7 +222,6 @@ vault write gcp/roleset/$env:TF_VAR_sa_name `
   token_scopes="https://www.googleapis.com/auth/cloud-platform" `
   bindings="resource \`"//cloudresourcemanager.googleapis.com/projects/$env:PROJECT_ID\`" { roles = [\`"roles/editor\`"] }"
 ```
-![image](https://hackmd.io/_uploads/S1RGJV_8-e.png)
 
 **參數說明**:
 - `token_scopes`: 定義 Token 的權限範圍(此處為完整雲端平台權限)
@@ -307,7 +303,6 @@ terraform plan
 terraform apply -auto-approve
 ```
 會出現類似以下的 `output`：
-![image](https://hackmd.io/_uploads/Bk8VLysDZe.png)
 
 ```sh
 infra = {
